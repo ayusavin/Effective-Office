@@ -47,7 +47,7 @@ internal class SmsDataDtoMapper {
      * - {sender} - SMS sender phone number
      * - {simId} - SIM card ID
      * - {operatorName} - Mobile operator name
-     * - {timestamp} - Message timestamp
+     * - {timestamp} - Current time in milliseconds (time when SMS forwarding was initiated)
      */
     private fun substituteVariables(template: String, smsData: SmsData): String {
         return template
