@@ -3,6 +3,8 @@
 ## Project Overview
 Effective Office is a multi-module Kotlin application aimed at automating office processes and providing statistics for employees. The project follows a client-server architecture with a Spring Boot backend, multiple client applications including an iOS tablet app, and Docker-based containerization for deployment.
 
+**📚 For detailed, up-to-date project information, always consult the [Memory Bank](.memory-bank/index.md) first.**
+
 ## Project Structure
 ```
 effective-office/
@@ -279,3 +281,113 @@ plugins {
 4. **Follow naming conventions**: Use consistent naming for plugins
 5. **Test changes**: Verify that changes to plugins don't break existing modules
 6. **Version control**: Update all affected modules when changing plugin behavior
+
+## Memory Bank Guidelines
+
+### Overview
+The `.memory-bank/` directory contains the project's "living documentation" - a lightweight, always-current encyclopedia describing architecture, stack, conventions, key entities, and active tasks. This documentation is maintained by a Memory Bank Steward (configured in `.cursor/rules/memory-bank.mdc`).
+
+### Memory Bank Structure
+```
+.memory-bank/
+├── index.md                              # Main navigation hub and project overview
+├── product-overview/
+│   └── apps.md                           # Overview of all applications
+├── tech-details/
+│   ├── tech-stack.md                     # Technologies, frameworks, versions
+│   └── architecture.md                   # System architecture and data flow
+├── steerings/
+│   ├── development-conventions.md        # Development standards and Git workflow
+│   └── testing-conventions.md            # Testing practices and tools
+└── tasks/
+    └── [active-task].md                  # Current development tasks
+```
+
+### When to Consult Memory Bank
+
+**ALWAYS check Memory Bank FIRST** when:
+1. Starting to work on a new feature or module
+2. Questions arise about project architecture or design decisions
+3. Unsure about conventions or best practices for this project
+4. Need to understand how modules interact with each other
+5. Looking for information about tech stack versions or dependencies
+6. Want to understand the overall project structure
+
+**How to use it:**
+- Read relevant sections from `.memory-bank/` before making architectural decisions
+- Use it as a reference when implementing features to ensure consistency
+- Consult it when writing documentation to maintain aligned terminology
+- Check `tasks/` directory to understand current development priorities
+
+### When to Suggest Memory Bank Updates
+
+**Suggest updates for (importance ≥ 2):**
+- ✅ Architecture changes (new modules, changed interactions)
+- ✅ Public API changes, new contracts, or schema modifications
+- ✅ New development or testing conventions
+- ✅ Tech stack updates (new frameworks, version upgrades)
+- ✅ Core business entity changes or workflow modifications
+- ✅ New features or current tasks (SDD-level documentation)
+
+**Do NOT suggest updates for (importance < 2):**
+- ❌ Local implementation details
+- ❌ Temporary experiments or POCs
+- ❌ Minor refactors or style changes
+- ❌ Bug fixes that don't change architecture
+- ❌ Internal helper functions or utilities
+
+### Update Format
+
+When suggesting an update:
+```
+MEMORY_SUGGESTION
+version: 1
+importance: <2|3>
+summary: "<short summary>"
+rationale: "<why this matters>"
+changes:
+  - path: ".memory-bank/<folder>/<file>.md"
+    op: "<create|update|append>"
+    section: "<section name or null>"
+    content_format: "<md|yaml|mermaid|diff>"
+    content: |-
+      <concise, factual update>
+validation:
+  conflicts_checked: true
+  secrets_present: false
+END
+```
+
+### Importance Levels
+- **3 (Major)**: New module, API, or architectural change
+- **2 (Moderate)**: New convention, interface, or contract
+- **1 (Minor)**: Internal helper refactor - ignore
+- **0 (Noise)**: Skip entirely
+
+### Best Practices
+1. **Check before suggesting**: Read existing Memory Bank content to avoid duplicates
+2. **Be concise and factual**: Document what exists, not implementation details
+3. **No secrets**: Never include tokens, passwords, or private data
+4. **Stable knowledge only**: Only record decisions that are finalized and committed
+5. **Use diagrams**: Prefer Mermaid diagrams for visualizing architecture and flows
+6. **When in doubt, don't update**: Only suggest updates for significant, lasting changes
+
+### Synergy with Junie Workflows
+1. **Before starting development**: Review relevant Memory Bank sections
+2. **During implementation**: Ensure code aligns with documented conventions
+3. **After significant changes**: Consider if Memory Bank needs updating
+4. **When generating documentation**: Use Memory Bank as source of truth
+5. **In code reviews**: Verify changes match Memory Bank architecture
+
+### Example Workflow
+```
+1. User: "Add new authentication module"
+2. Junie: 
+   - Reads .memory-bank/tech-details/architecture.md
+   - Reads .memory-bank/steerings/development-conventions.md
+   - Implements following documented patterns
+   - After completion, suggests Memory Bank update:
+     * Update architecture.md with new auth module
+     * Document new API contracts
+     * Add task completion note
+```
