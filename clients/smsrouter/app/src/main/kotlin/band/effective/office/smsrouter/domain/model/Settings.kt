@@ -18,8 +18,21 @@ data class Settings(
 @Serializable
 enum class WebhookType {
     MATTERMOST,
-    TELEGRAM
+    TELEGRAM,
+    CUSTOM
 }
+
+/**
+ * Data class representing custom webhook configuration.
+ *
+ * @property headers Map of custom HTTP headers (e.g., "Authorization" -> "Bearer token")
+ * @property bodyTemplate JSON body template with variable placeholders (e.g., {"message": "{message}", "sender": "{sender}"})
+ */
+@Serializable
+data class CustomWebhookConfig(
+    val headers: Map<String, String> = emptyMap(),
+    val bodyTemplate: String = ""
+)
 
 /**
  * Data class representing the settings for a SIM card.
@@ -30,6 +43,7 @@ enum class WebhookType {
  * @property secretKey Secret key for webhook authorization
  * @property webhookType Type of webhook service (Mattermost or Telegram)
  * @property chatId Chat ID for Telegram webhook (only used when webhookType is TELEGRAM)
+ * @property customWebhookConfig Configuration for custom webhook (only used when webhookType is CUSTOM)
  */
 @Serializable
 data class SimCardSettings(
@@ -38,5 +52,6 @@ data class SimCardSettings(
     val webhookUrl: String = "",
     val secretKey: String = "",
     val webhookType: WebhookType = WebhookType.MATTERMOST,
-    val chatId: String = ""
+    val chatId: String = "",
+    val customWebhookConfig: CustomWebhookConfig = CustomWebhookConfig()
 )

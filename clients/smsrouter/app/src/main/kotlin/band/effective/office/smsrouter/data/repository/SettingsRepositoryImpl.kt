@@ -3,6 +3,7 @@ package band.effective.office.smsrouter.data.repository
 import android.content.Context
 import android.content.SharedPreferences
 import androidx.core.content.edit
+import band.effective.office.smsrouter.domain.model.CustomWebhookConfig
 import band.effective.office.smsrouter.domain.model.Settings
 import band.effective.office.smsrouter.domain.model.SimCardSettings
 import band.effective.office.smsrouter.domain.model.WebhookType
@@ -43,6 +44,10 @@ internal class SettingsRepositoryImpl(
 
     override suspend fun getChatId(simId: String): String = withContext(Dispatchers.IO) {
         _settingsFlow.value.simCards.find { it.simId == simId }?.chatId ?: ""
+    }
+
+    override suspend fun getCustomWebhookConfig(simId: String): CustomWebhookConfig = withContext(Dispatchers.IO) {
+        _settingsFlow.value.simCards.find { it.simId == simId }?.customWebhookConfig ?: CustomWebhookConfig()
     }
 
     override suspend fun saveSettings(settings: Settings) = withContext(Dispatchers.IO) {

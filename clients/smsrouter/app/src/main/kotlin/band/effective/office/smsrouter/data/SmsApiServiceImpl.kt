@@ -1,6 +1,7 @@
 package band.effective.office.smsrouter.data
 
 import band.effective.office.shared.core.network.HttpRequestUtil
+import band.effective.office.smsrouter.data.models.CustomSmsDataRequest
 import band.effective.office.smsrouter.data.models.SmsDataRequest
 import band.effective.office.smsrouter.domain.Either
 import band.effective.office.smsrouter.domain.ErrorResponse
@@ -34,6 +35,7 @@ internal class SmsApiServiceImpl(
         url: String,
         secretKey: String,
         body: SmsDataRequest,
+        customHeaders: Map<String, String>,
         smsId: String,
         onRetry: ((smsId: String, retryCount: Int) -> Unit)?,
     ): Either<ErrorResponse, Unit> {
@@ -61,8 +63,27 @@ internal class SmsApiServiceImpl(
                 method = HttpRequestUtil.Method.POST,
             ) {
                 contentType(ContentType.Application.Json)
-                header(HttpHeaders.Authorization, "Bearer $secretKey")
-                setBody(body)
+                
+                // Apply custom headers if provided, otherwise use default Bearer token
+                if (customHeaders.isNotEmpty()) {
+                    customHeaders.forEach { (key, value) ->
+                        header(key, value)
+                    }
+                } else if (secretKey.isNotEmpty()) {
+                    header(HttpHeaders.Authorization, "Bearer $secretKey")
+                }
+                
+                // Set body - handle custom JSON specially
+                when (body) {
+                    is CustomSmsDataRequest -> {
+                        // For custom webhooks, send the raw JSON string
+                        setBody(body.jsonString)
+                    }
+                    else -> {
+                        // For standard webhooks, use normal serialization
+                        setBody(body)
+                    }
+                }
             }
 
             when (lastResult) {

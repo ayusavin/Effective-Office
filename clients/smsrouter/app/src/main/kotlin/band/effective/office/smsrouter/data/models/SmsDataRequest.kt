@@ -23,3 +23,11 @@ data class TelegramSmsDataRequest(
     val chat_id: String,
     val text: String,
 ) : SmsDataRequest
+
+/**
+ * Custom webhook SMS data request with dynamic JSON.
+ */
+@Serializable
+data class CustomSmsDataRequest(
+    val jsonString: String
+) : SmsDataRequest
