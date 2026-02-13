@@ -1,5 +1,6 @@
 package band.effective.office.smsrouter.domain.repository
 
+import band.effective.office.smsrouter.domain.model.CustomWebhookConfig
 import band.effective.office.smsrouter.domain.model.Settings
 import band.effective.office.smsrouter.domain.model.SimCardSettings
 import band.effective.office.smsrouter.domain.model.WebhookType
@@ -42,6 +43,13 @@ interface SettingsRepository {
      * @return The chat ID or empty string if not found
      */
     suspend fun getChatId(simId: String): String
+
+    /**
+     * Get the custom webhook configuration for a specific SIM card.
+     * @param simId The ID of the SIM card
+     * @return The custom webhook configuration or empty config if not found
+     */
+    suspend fun getCustomWebhookConfig(simId: String): CustomWebhookConfig
 
     /**
      * Save the settings.

@@ -50,6 +50,7 @@ internal class ForwardSmsUseCaseImpl(
         val secretKey = settingsRepository.getSecretKey(simId).orEmpty()
         val webhookType = settingsRepository.getWebhookType(simId)
         val chatId = settingsRepository.getChatId(simId)
+        val customConfig = settingsRepository.getCustomWebhookConfig(simId)
 
         // Create a callback to update the log with retry information in real-time
         val retryCallback: (String, Int) -> Unit = { id, retryCount ->
@@ -75,6 +76,7 @@ internal class ForwardSmsUseCaseImpl(
             smsData = sms,
             webhookType = webhookType,
             chatId = chatId,
+            customConfig = customConfig,
             smsId = smsId,
             onRetry = retryCallback
         )

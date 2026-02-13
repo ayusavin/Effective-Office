@@ -9,6 +9,7 @@ interface SmsApiService {
         url: String,
         secretKey: String,
         body: SmsDataRequest,
+        customHeaders: Map<String, String> = emptyMap(), // Custom headers for webhook requests
         smsId: String = "", // Optional SMS ID for tracking retries
         onRetry: ((smsId: String, retryCount: Int) -> Unit)? = null // Callback for retry attempts
     ): Either<ErrorResponse, Unit>

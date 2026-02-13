@@ -2,6 +2,7 @@ package band.effective.office.smsrouter.presentation.screens.settings
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import band.effective.office.smsrouter.domain.model.CustomWebhookConfig
 import band.effective.office.smsrouter.domain.model.Settings
 import band.effective.office.smsrouter.domain.model.SimCardSettings
 import band.effective.office.smsrouter.domain.model.WebhookType
@@ -43,6 +44,8 @@ class SettingsViewModel(
             is Intent.UpdateSecretKey -> updateSecretKey(intent.simId, intent.key)
             is Intent.UpdateWebhookType -> updateWebhookType(intent.simId, intent.webhookType)
             is Intent.UpdateChatId -> updateChatId(intent.simId, intent.chatId)
+            is Intent.UpdateCustomHeaders -> updateCustomHeaders(intent.simId, intent.headers)
+            is Intent.UpdateCustomBodyTemplate -> updateCustomBodyTemplate(intent.simId, intent.bodyTemplate)
             is Intent.SaveSettings -> saveSettings()
             is Intent.ReloadSimCards -> loadSimCards()
         }
@@ -68,7 +71,9 @@ class SettingsViewModel(
                     webhookUrl = existingSettings?.webhookUrl ?: "",
                     secretKey = existingSettings?.secretKey ?: "",
                     webhookType = existingSettings?.webhookType ?: WebhookType.MATTERMOST,
-                    chatId = existingSettings?.chatId ?: ""
+                    chatId = existingSettings?.chatId ?: "",
+                    customHeaders = existingSettings?.customWebhookConfig?.headers ?: emptyMap(),
+                    customBodyTemplate = existingSettings?.customWebhookConfig?.bodyTemplate ?: ""
                 )
             }
 
@@ -128,6 +133,32 @@ class SettingsViewModel(
         }
     }
 
+    private fun updateCustomHeaders(simId: String, headers: Map<String, String>) {
+        _state.update { currentState ->
+            val updatedSimCards = currentState.simCards.map { simCard ->
+                if (simCard.simId == simId) {
+                    simCard.copy(customHeaders = headers)
+                } else {
+                    simCard
+                }
+            }
+            currentState.copy(simCards = updatedSimCards)
+        }
+    }
+
+    private fun updateCustomBodyTemplate(simId: String, bodyTemplate: String) {
+        _state.update { currentState ->
+            val updatedSimCards = currentState.simCards.map { simCard ->
+                if (simCard.simId == simId) {
+                    simCard.copy(customBodyTemplate = bodyTemplate)
+                } else {
+                    simCard
+                }
+            }
+            currentState.copy(simCards = updatedSimCards)
+        }
+    }
+
     private fun saveSettings() {
         viewModelScope.launch {
             try {
@@ -141,7 +172,11 @@ class SettingsViewModel(
                         webhookUrl = uiModel.webhookUrl,
                         secretKey = uiModel.secretKey,
                         webhookType = uiModel.webhookType,
-                        chatId = uiModel.chatId
+                        chatId = uiModel.chatId,
+                        customWebhookConfig = CustomWebhookConfig(
+                            headers = uiModel.customHeaders,
+                            bodyTemplate = uiModel.customBodyTemplate
+                        )
                     )
                 }
 
@@ -175,7 +210,9 @@ class SettingsViewModel(
         val webhookUrl: String,
         val secretKey: String,
         val webhookType: WebhookType = WebhookType.MATTERMOST,
-        val chatId: String = ""
+        val chatId: String = "",
+        val customHeaders: Map<String, String> = emptyMap(),
+        val customBodyTemplate: String = ""
     )
 
     // Intent sealed class for user actions
@@ -184,6 +221,8 @@ class SettingsViewModel(
         data class UpdateSecretKey(val simId: String, val key: String) : Intent()
         data class UpdateWebhookType(val simId: String, val webhookType: WebhookType) : Intent()
         data class UpdateChatId(val simId: String, val chatId: String) : Intent()
+        data class UpdateCustomHeaders(val simId: String, val headers: Map<String, String>) : Intent()
+        data class UpdateCustomBodyTemplate(val simId: String, val bodyTemplate: String) : Intent()
         object SaveSettings : Intent()
         object ReloadSimCards : Intent()
     }

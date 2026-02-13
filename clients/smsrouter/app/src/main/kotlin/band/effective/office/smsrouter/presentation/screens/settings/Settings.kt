@@ -139,6 +139,22 @@ fun SettingsScreen() {
                 )
             )
         },
+        onCustomHeadersChanged = { simCard, headers ->
+            viewModel.sendIntent(
+                SettingsViewModel.Intent.UpdateCustomHeaders(
+                    simId = simCard.simId,
+                    headers = headers
+                )
+            )
+        },
+        onCustomBodyTemplateChanged = { simCard, template ->
+            viewModel.sendIntent(
+                SettingsViewModel.Intent.UpdateCustomBodyTemplate(
+                    simId = simCard.simId,
+                    bodyTemplate = template
+                )
+            )
+        },
         onSaveClick = {
             viewModel.sendIntent(SettingsViewModel.Intent.SaveSettings)
         }
@@ -154,6 +170,8 @@ private fun SettingsScreenContent(
     onSecretKeyChanged: (SettingsViewModel.SimCardUiModel, String) -> Unit,
     onWebhookTypeChanged: (SettingsViewModel.SimCardUiModel, WebhookType) -> Unit,
     onChatIdChanged: (SettingsViewModel.SimCardUiModel, String) -> Unit,
+    onCustomHeadersChanged: (SettingsViewModel.SimCardUiModel, Map<String, String>) -> Unit,
+    onCustomBodyTemplateChanged: (SettingsViewModel.SimCardUiModel, String) -> Unit,
     onSaveClick: () -> Unit,
 ) {
     Scaffold(
@@ -226,7 +244,9 @@ private fun SettingsScreenContent(
                                 onWebhookUrlChanged = { url -> onWebhookUrlChanged(simCard, url) },
                                 onSecretKeyChanged = { key -> onSecretKeyChanged(simCard, key) },
                                 onWebhookTypeChanged = { type -> onWebhookTypeChanged(simCard, type) },
-                                onChatIdChanged = { chatId -> onChatIdChanged(simCard, chatId) }
+                                onChatIdChanged = { chatId -> onChatIdChanged(simCard, chatId) },
+                                onCustomHeadersChanged = { headers -> onCustomHeadersChanged(simCard, headers) },
+                                onCustomBodyTemplateChanged = { template -> onCustomBodyTemplateChanged(simCard, template) }
                             )
                         }
                     }
@@ -243,9 +263,16 @@ private fun SimCardSettingsItem(
     onWebhookUrlChanged: (String) -> Unit,
     onSecretKeyChanged: (String) -> Unit,
     onWebhookTypeChanged: (WebhookType) -> Unit,
-    onChatIdChanged: (String) -> Unit
+    onChatIdChanged: (String) -> Unit,
+    onCustomHeadersChanged: (Map<String, String>) -> Unit,
+    onCustomBodyTemplateChanged: (String) -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
+    
+    // State for managing custom headers
+    var headersText by remember(simCard.customHeaders) { 
+        mutableStateOf(simCard.customHeaders.entries.joinToString("\n") { "${it.key}:${it.value}" })
+    }
 
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -339,17 +366,68 @@ private fun SimCardSettingsItem(
                 Spacer(modifier = Modifier.height(8.dp))
             }
 
-            // Secret Key
-            OutlinedTextField(
-                value = simCard.secretKey,
-                onValueChange = onSecretKeyChanged,
-                label = { Text("Secret Key") },
-                placeholder = { Text("Enter secret key") },
-                modifier = Modifier.fillMaxWidth(),
-                visualTransformation = PasswordVisualTransformation(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                singleLine = true
-            )
+            // Custom webhook fields (only for CUSTOM)
+            if (simCard.webhookType == WebhookType.CUSTOM) {
+                // Custom Headers
+                OutlinedTextField(
+                    value = headersText,
+                    onValueChange = { newText ->
+                        headersText = newText
+                        // Parse headers text into map
+                        val headers = newText.split("\n")
+                            .filter { it.isNotBlank() && it.contains(":") }
+                            .associate { line ->
+                                val parts = line.split(":", limit = 2)
+                                parts[0].trim() to parts.getOrNull(1)?.trim().orEmpty()
+                            }
+                        onCustomHeadersChanged(headers)
+                    },
+                    label = { Text("Custom Headers (one per line)") },
+                    placeholder = { Text("Authorization:Bearer token\nContent-Type:application/json") },
+                    modifier = Modifier.fillMaxWidth(),
+                    minLines = 3,
+                    maxLines = 5
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // Body Template
+                OutlinedTextField(
+                    value = simCard.customBodyTemplate,
+                    onValueChange = onCustomBodyTemplateChanged,
+                    label = { Text("Body Template (JSON)") },
+                    placeholder = { Text("""{"message": "{message}", "sender": "{sender}"}""") },
+                    modifier = Modifier.fillMaxWidth(),
+                    minLines = 3,
+                    maxLines = 10
+                )
+
+                Spacer(modifier = Modifier.height(4.dp))
+
+                // Help text for variables
+                Text(
+                    text = "Available variables: {message}, {sender}, {simId}, {operatorName}, {timestamp}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(start = 16.dp)
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+            }
+
+            // Secret Key (only for non-CUSTOM webhooks)
+            if (simCard.webhookType != WebhookType.CUSTOM) {
+                OutlinedTextField(
+                    value = simCard.secretKey,
+                    onValueChange = onSecretKeyChanged,
+                    label = { Text("Secret Key") },
+                    placeholder = { Text("Enter secret key") },
+                    modifier = Modifier.fillMaxWidth(),
+                    visualTransformation = PasswordVisualTransformation(),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                    singleLine = true
+                )
+            }
         }
     }
 }
